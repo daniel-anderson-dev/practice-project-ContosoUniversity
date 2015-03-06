@@ -8,6 +8,8 @@ using System.Web;
 using System.Web.Mvc;
 using ReHashContosoUniversity.DAL;
 using ReHashContosoUniversity.Models;
+using PagedList;
+
 
 namespace ReHashContosoUniversity.Controllers
 {
@@ -16,11 +18,18 @@ namespace ReHashContosoUniversity.Controllers
         private SchoolContext db = new SchoolContext();
 
         // GET: Student
-        public ActionResult Index(string sortOrder, string searchString)
+        public ViewResult Index(string sortOrder, string currentFilter, string searchString, int? page)
         {
 
+			if (searchString != null)
+			{ page = 1; }
+			else
+			{ searchString = currentFilter; }
+
+			ViewBag.CurrentSort = sortOrder;
 			ViewBag.NameSortParam = String.IsNullOrEmpty(sortOrder) ? "name_desc" : "";
 			ViewBag.DateSortParam = (sortOrder == "Date") ? "date_desc" : "Date";
+			ViewBag.CurrentFilter = searchString;
 
 			var students = from s in db.Students select s;
 
@@ -45,7 +54,10 @@ namespace ReHashContosoUniversity.Controllers
 					break;
 			}
 
-			return View(students.ToList());
+			int pageSize = 3;
+			int pageNumber = (page ?? 1);
+
+			return View(students.ToPagedList(pageNumber, pageSize));
 
         }
 
